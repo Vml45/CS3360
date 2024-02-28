@@ -1,0 +1,58 @@
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <cstdlib>
+
+using namespace std;
+
+vector<tuple<int, double, double>> generate_workload(int num_processes, double arrival_rate, double service_time) {
+    vector<tuple<int, double, double>> processes;
+    double arrival_time = 0;
+    
+    for (int process_id = 1; process_id <= num_processes; ++process_id) {
+        // Generate inter-arrival time based on Poisson Distribution
+        double inter_arrival_time = -1 / arrival_rate * log(1 - (double)rand() / RAND_MAX);
+        arrival_time += inter_arrival_time;
+        
+        // Generate service time based on Exponential Distribution
+        double requested_service_time = -service_time * log(1 - (double)rand() / RAND_MAX);
+        
+        processes.push_back(make_tuple(process_id, round(arrival_time, 2), round(requested_service_time, 2)));
+    }
+    
+    return processes;
+}
+
+void print_workload(const vector<tuple<int, double, double>>& workload) {
+    for (const auto& process : workload) {
+        cout << "<" << get<0>(process) << ", " << get<1>(process) << ", " << get<2>(process) << ">" << endl;
+    }
+}
+
+int main() {
+    srand(time(nullptr));  // Seed for random number generation
+    
+    // Parameters
+    int num_processes = 1000;
+    double arrival_rate = 2;  // processes per second
+    double service_time = 1;  // seconds
+    
+    // Generate workload
+    vector<tuple<int, double, double>> workload = generate_workload(num_processes, arrival_rate, service_time);
+    
+    // Print workload
+    print_workload(workload);
+    
+    // Calculate actual average arrival rate and service time
+    double actual_avg_arrival_rate = workload.size() / get<1>(workload.back());
+    double actual_avg_service_time = 0;
+    for (const auto& process : workload) {
+        actual_avg_service_time += get<2>(process);
+    }
+    actual_avg_service_time /= workload.size();
+    
+    cout << "\nActual Average Arrival Rate: " << round(actual_avg_arrival_rate, 2) << " processes per second" << endl;
+    cout << "Actual Average Service Time: " << round(actual_avg_service_time, 2) << " seconds" << endl;
+    
+    return 0;
+}
